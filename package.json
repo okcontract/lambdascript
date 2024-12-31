@@ -1,0 +1,59 @@
+{
+  "name": "@okcontract/lambdascript",
+  "description": "lambdascript is a reactive functional scripting language",
+  "private": false,
+  "version": "0.1.0",
+  "main": "dist/lambdascript.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/lambdascript.js",
+      "require": "./dist/lambdascript.umd.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@biomejs/biome": "^1.8.3",
+    "@lezer/generator": "^1.6.0",
+    "@types/node": "^22.5.4",
+    "@vitest/coverage-v8": "^2.0.5",
+    "happy-dom": "^15.7.3",
+    "immer": "^10.0.3",
+    "terser": "^5.31.6",
+    "typescript": "^5.5.4",
+    "vite": "^5.2.11",
+    "vitest": "^2.0.5"
+  },
+  "dependencies": {
+    "@lezer/lr": "^1.4.2",
+    "@okcontract/cells": "^0.3.3",
+    "@okcontract/graph": "^0.1.5"
+  },
+  "scripts": {
+    "clean": "rm -rf dist",
+    "grammar": "lezer-generator src/parser/λs.grammar -o src/parser/λs.js",
+    "build": "npm run format && vite build",
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "definitions": "tsc --project tsconfig.build.json",
+    "prepublishOnly": "npm test && npm run build && npm run check && npm run definitions",
+    "check": "npx @biomejs/biome check src",
+    "format": "npx @biomejs/biome format src --write && npx @biomejs/biome check src --write",
+    "formatReadme": "prettier README.md --prose-wrap always --print-width 78 -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/okcontract/lambdascript.git"
+  },
+  "author": "Henri Binsztok",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/okcontract/lambdascript/issues"
+  },
+  "homepage": "https://hbbio.github.io/lambdascript"
+}

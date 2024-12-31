@@ -1,0 +1,356 @@
+// adapted from https://github.com/lezer-parser/julia
+// license: MIT
+
+@precedence {
+  immediate
+  dot @left
+  prefix
+  postfix
+  interp @left
+  typeonlyascription @left
+  typeascription @left
+  call
+  power @left
+  bitshift @left
+  times @left
+  plus @left
+  range @left
+  pipe @left
+  pipeback @right
+  contains @left
+  arrow @right
+  band @right
+  bor @right
+  ternary @right
+  pair @right
+  regular1
+  right0 @right
+  regular0
+  regular-1
+  right-2 @right
+  regular-2
+}
+
+@top SourceFile {
+  expressionList<e, pe> | ""
+}
+
+@skip { whitespace }
+
+// TOP LEVEL
+
+expressionList<e, pe> {
+  (e ~id)
+  (!regular0 terminator
+    (!regular0 e))*
+  terminator?
+}
+
+// EXPRESSIONS
+
+e {
+  PairExpression<e> |
+  UnaryExpression<e> |
+  BinaryExpression<e> |
+  TernaryExpression<e> |
+  FunctionExpression<e, pe> |
+  RangeExpression<e> |
+  SpreadExpression<e> |
+  pe
+}
+
+TupleExpression<e> {
+  "{" !regular1 e ("," e)+ !regular1 ","? "}"
+}
+
+pe {
+  InterpolationExpression<pe> |
+  FieldExpression<pe> |
+  SubscriptExpression<pe> |
+  CallExpression<e, pe> |
+  BooleanValue |
+  Identifier ~id |
+  Character |
+  NumberValue |
+  SymbolValue |
+  StringValue |
+  TripleString |
+  CommandString |
+  PrefixedString |
+  TupleExpression<e> |
+  ParenthesizedExpression<e> |
+  ArrayExpression<e> |
+  ObjectExpression<e,pe> |
+  ArrayComprehensionExpression<e, pe> |
+  GeneratorExpression<e, pe>
+}
+
+
+FieldExpression<pe> {
+  pe
+  !immediate immediateDot !dot "." !dot
+  ( Identifier | ParenthesizedExpression<pe>
+    | InterpolationExpression<pe>)
+}
+
+SubscriptExpression[closedBy="]"]<pe> {
+  pe !immediate immediateBracket "["
+    (
+      GeneratorExpression { s_e comprehensionClause<s_e, s_pe> } |
+      (s_e)
+      ("," (s_e))*
+    )?
+    ","?
+  "]"
+}
+
+s_e {
+  PairExpression<s_e> |
+  UnaryExpression<s_e> |
+  BinaryExpression<s_e> |
+  TernaryExpression<s_e> |
+  FunctionExpression<s_e, s_pe> |
+  RangeExpression<s_e> |
+  SpreadExpression<s_e> |
+  s_pe
+}
+
+s_pe {
+  InterpolationExpression<s_pe> |
+  FieldExpression<s_pe> |
+  SubscriptExpression<s_pe> |
+  CallExpression<s_e, s_pe> |
+  BooleanValue |
+  Identifier ~id |
+  Character |
+  NumberValue |
+  SymbolValue |
+  StringValue |
+  TripleString |
+  CommandString |
+  PrefixedString |
+  ParenthesizedExpression<s_e> |
+  ArrayExpression<s_e> |
+  ObjectExpression<s_e,s_pe> |
+  ArrayComprehensionExpression<s_e, s_pe> |
+  GeneratorExpression<s_e, s_pe>
+}
+
+SpreadExpression<pe> {
+  pe !dot "..."
+}
+
+PairExpression<e> {
+  e !pair "=>" e
+}
+
+TernaryExpression<e> {
+  e
+  !ternary ternary1 !ternary
+  e
+  !ternary ternary2 !ternary
+  e
+}
+
+InterpolationExpression[@dynamicPrecedence=2]<pe> {
+  "#" !interp pe
+}
+
+SymbolValue {
+  ":" !interp Identifier
+}
+
+CallExpression<e, pe> {
+  pe
+  !call immediateParen
+  !call args[@dynamicPrecedence=1] { ArgumentList<e, pe> }
+}
+
+ArgumentList[closedBy=")"]<e, pe> {
+  "("
+  (arg<e, pe> ~id ("," arg<e, pe> ~id)*)?
+  (";" arg<e, pe> ("," arg<e, pe>)*)?
+  ","?
+  ")"
+}
+
+arg<e, pe> {
+  (e | NamedArgument { NamedField<e, pe>  }) ~id
+}
+
+simpleExpressionList<e> {
+  (e ~id)
+  (!regular0 terminator
+    (!regular0 e))*
+  terminator?
+}
+
+ParenthesizedExpression[closedBy=")"]<e> {
+  "(" !regular1 simpleExpressionList<e> !regular1 ")"
+}
+
+NamedField<e, pe> {
+  name { Identifier } ~id ":" e
+}
+
+FunctionExpression<e, pe> {
+  (Identifier ~id | ArgumentList<e, pe>) !arrow "=>" (e)
+}
+
+BinaryExpression<e> {
+  e !power PowerOperator !power e |
+  e !times TimesOperator !times e |
+  e !plus PlusOperator !plus e |
+  e !contains (kw<"in"> | kw<"isa"> | ComparisonOperator) !contains e |
+  e !bor OrOperator e |
+  e !band AndOperator e
+}
+
+OrOperator {"||"}
+AndOperator {"&&"}
+
+UnaryExpression<e> {
+  (UnaryOperatorExtra) ~op !prefix e |
+  e !postfix ("'" | ".'")
+}
+
+ArrayExpression[closedBy="]"]<e> {
+  !regular0 "[" "]" |
+  !regular0 "["
+    !regular0 e
+    ("," e)*?
+    (!regular0 ",")?
+    !regular0 "]"
+}
+
+ObjectExpression[closedBy="}"]<e,pe> {
+  !regular0 "{" "}" |
+  !regular0 "{"
+    !regular0 NamedField<e,pe>
+    ("," NamedField<e,pe>)*?
+    (!regular0 ",")?
+    !regular0 "}"
+}
+
+ArrayComprehensionExpression[closedBy="]"]<e, pe> {
+  "[" !regular0 e !regular0 comprehensionClause<e, pe> "]"
+}
+
+GeneratorExpression[closedBy=")"]<e, pe> {
+  "(" e comprehensionClause<e, pe> ")"
+}
+
+comprehensionClause<e, pe> {
+  ForClause<e, pe> (ForClause<e, pe> | IfClause<e, pe>)*
+}
+
+IfClause<e, pe> {
+  kw<"if"> e
+}
+
+ForClause<e, pe> {
+  kw<"for"> ForBinding<e, pe> (!regular0 "," ForBinding<e, pe>)*
+}
+
+ForBinding<e, pe> {
+  (
+    Identifier
+  ) (kw<"in"> | "=" | "∈") e
+}
+
+RangeExpression<e> {
+  e !range "::" !range e
+}
+
+@skip {} {
+  StringValue {
+    '"' (stringContent | stringInterpolation)* '"'
+  }
+  TripleString {
+    '"""' (tripleStringContent | stringInterpolation)* '"""'
+  }
+  CommandString {
+    "`" (commandStringContent | stringInterpolation)* "`"
+  }
+}
+
+stringInterpolation {
+  "#" Identifier |
+  "#" immediateParen "(" !regular1 e !regular1 ")"
+}
+
+PrefixedString {
+  Identifier !immediate immediateDoubleQuote StringValue |
+  Identifier !immediate immediateDoubleQuote TripleString |
+  Identifier !immediate immediateBackquote CommandString
+}
+
+PlusOperator {
+  (plusminus)
+}
+
+kw<term> { @specialize[@name={term},group="keyword"]<Identifier, term> }
+
+@external tokens terminator from "./index.tokens.js" { terminator }
+@external tokens Identifier from "./index.tokens.js" { Identifier }
+@external tokens tripleStringContent from "./index.tokens.js" { tripleStringContent }
+@external tokens stringContent from "./index.tokens.js" { stringContent }
+@external tokens commandStringContent from "./index.tokens.js" { commandStringContent }
+@external tokens layoutExtra from "./index.tokens.js" {
+  immediateParen,
+  immediateBracket,
+  immediateDoubleQuote,
+  immediateBackquote,
+  immediateDot
+}
+
+BooleanValue { @specialize<Identifier, "true" | "false"> }
+
+@tokens {
+  whitespace {
+    " " | "\t" | "\n"
+  }
+  NumberValue {
+    plusminus?
+    (
+      "0" $[xX] $[0-9a-fA-F] $[0-9a-fA-F_]* |
+      $[0-9] $[0-9_]* "."? ($[0-9] $[0-9_]*)? |
+      "." $[0-9] $[0-9_]*
+    )
+    ($[eE] ("-" | "+")? $[0-9]+)?
+  }
+  PowerOperator {
+    "."? ("^")
+  }
+  TimesOperator {
+    "."? ("*" | "/")
+  }
+  ComparisonOperator {
+     "."?  (">" | "<" | ">=" | "<=" | "==" | "!=" )
+  }
+  UnaryOperatorExtra {
+    ">:" | "!" | "~" | "-"
+  }
+  plusminus {
+    "+" | "-"
+  }
+  Character {
+    "'" ("\\" !['] | ![']) "'"
+  }
+  ternary1 {
+    whitespace+ "?" whitespace+
+  }
+  ternary2 {
+    whitespace+ ":" whitespace+
+  }
+  @precedence {
+    NumberValue,
+    ComparisonOperator,
+    "=",
+    UnaryOperatorExtra,
+    ".",
+    ternary1,
+    ternary2,
+    whitespace
+  }
+}
