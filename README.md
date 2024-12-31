@@ -27,8 +27,8 @@ const foo = proxy.new(new Rational(1));
 // create a λs Environment (and a standard library)
 const env = new Environment(proxy, {
   values: {
-    foo
-  }
+    foo,
+  },
 });
 // expr the built reactive expression that will react to `foo` updates
 const expr = (await env.evaluateString("foo + 1")) as AnyCell<Rational>; // λs types are not known to TypeScript
@@ -66,5 +66,5 @@ A non-goal is high-performance: `lambdascript` is slower than `eval` calls!
 released under the Apache license.
 
 Contributors are welcome, feel free to submit PRs directly for small changes.
-You can also reach out on [Twitter](https://x.com/okcontract) in advance for larger
-contributions.
+You can also reach out on [Twitter](https://x.com/okcontract) in advance for
+larger contributions.
