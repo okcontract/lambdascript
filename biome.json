@@ -1,6 +1,9 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.3/schema.json",
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "files": {
+    "includes": ["**", "!src/parser/λs.js", "!src/parser/λs.terms.js"]
+  },
   "formatter": {
     "indentStyle": "space",
     "indentWidth": 2

@@ -113,7 +113,7 @@ const toProgramBinding = (
   if (node.name !== "ComponentBinding")
     throwRangedError(`Unexpected node in binding: ${node.name}`, node);
   const [identifier, exprNode] = node.children ?? [];
-  if (!identifier || identifier.name !== "Identifier")
+  if (identifier?.name !== "Identifier")
     throwRangedError("Program bindings must start with an identifier", node);
   if (!exprNode)
     throwRangedError(

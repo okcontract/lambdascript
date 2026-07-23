@@ -39,7 +39,7 @@ export function toHighLevelAST(
   parseTree: LowLevelAST,
   extensions: ParserExtension<unknown, string>[] = []
 ): ASTNode {
-  if (!parseTree || !parseTree.name) {
+  if (!parseTree?.name) {
     return throwRangedError("Invalid parse tree", parseTree);
   }
 
@@ -139,7 +139,7 @@ export function toHighLevelAST(
     case "FieldExpression":
     case "SubscriptExpression": {
       const children = parseTree.children;
-      if (!children || children.length !== 2)
+      if (children?.length !== 2)
         return throwRangedError("wrong FieldExpression length", parseTree);
       // @todo support field expressions
       if (children[1].name === "Identifier")
@@ -159,7 +159,7 @@ export function toHighLevelAST(
 
     case "FunctionExpression": {
       const children = parseTree.children;
-      if (!children || children.length !== 2)
+      if (children?.length !== 2)
         return throwRangedError("wrong function length", parseTree);
       let parameters: LowLevelAST[];
       if (children[0].name === "ArgumentList") {
@@ -183,7 +183,7 @@ export function toHighLevelAST(
 
     case "CallExpression": {
       const children = parseTree.children;
-      if (!children || children.length !== 2)
+      if (children?.length !== 2)
         return throwRangedError("wrong CallExpression length", parseTree);
       if (children[1].name !== "ArgumentList")
         return throwRangedError("wrong CallExpression arguments", children[1]);
@@ -215,7 +215,7 @@ export function toHighLevelAST(
 
     case "UnaryExpression": {
       const children = parseTree.children;
-      if (!children || children.length !== 2)
+      if (children?.length !== 2)
         return throwRangedError("wrong UnaryExpression length", parseTree);
       if (!children[0].name.includes("Operator"))
         return throwRangedError("not an unary operator", children[0]);
@@ -233,7 +233,7 @@ export function toHighLevelAST(
 
     case "BinaryExpression": {
       const children = parseTree.children;
-      if (!children || children.length !== 3)
+      if (children?.length !== 3)
         return throwRangedError("wrong BinaryExpression length", parseTree);
       return {
         type: NameApplication,
@@ -252,7 +252,7 @@ export function toHighLevelAST(
 
     case "TernaryExpression": {
       const children = parseTree.children;
-      if (!children || children.length !== 3)
+      if (children?.length !== 3)
         return throwRangedError("wrong TernaryExpression length", parseTree);
       return {
         type: NameApplication,
