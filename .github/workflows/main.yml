@@ -23,6 +23,8 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Ensure build ok
         run: bun run build
+      - name: Test package entry points
+        run: bun run test:package
       - name: Generate definitions
         run: bun run definitions
       - name: Run all tests

@@ -18,24 +18,33 @@ reactive programs.
 Another notable property is the default use of `Rationals` for both integers
 and floats of arbitrary length throughout the standard library.
 
+## Installation
+
+```sh
+npm install @okcontract/lambdascript @okcontract/cells
+```
+
 ## Walkthrough
 
 ```ts
+import { type AnyCell, Sheet } from "@okcontract/cells";
 import { Environment, Rational } from "@okcontract/lambdascript";
-// create a new cell (see cells repo on how to create a proxy)
+
+// Create a new cell `foo` (see https://github.com/okcontract/cells)
+const proxy = new Sheet().newProxy();
 const foo = proxy.new(new Rational(1));
-// create a λs Environment (and a standard library)
+// Create a λs Environment (and a standard library)
 const env = new Environment(proxy, {
   values: {
     foo,
   },
 });
-// expr the built reactive expression that will react to `foo` updates
-const expr = (await env.evaluateString("foo + 1")) as AnyCell<Rational>; // λs types are not known to TypeScript
+
+// The expression is recomputed whenever `foo` changes.
+const expr = (await env.evaluateString("foo + 1")) as AnyCell<Rational>;
 expect((await expr.get()).toString()).toBe("2");
-// we update foo
+
 foo.set(new Rational(2));
-// expr is automatically re-computed
 expect((await expr.get()).toString()).toBe("3");
 ```
 

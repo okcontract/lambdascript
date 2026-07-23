@@ -6,9 +6,10 @@
   "exclude": [
     "node_modules/**/*",
     "src/*.test.ts",
-    "src/parser/*.test.ts"
+    "src/parser/*.test.*"
   ],
   "compilerOptions": {
+    "allowJs": true,
     "baseUrl": ".",
     "typeRoots": [
       "node_modules/@types"

@@ -5,6 +5,7 @@
     "": {
       "name": "@okcontract/lambdascript",
       "dependencies": {
+        "@lezer/common": "^1.5.2",
         "@lezer/lr": "^1.4.2",
         "@okcontract/cells": "^0.4.0",
         "@okcontract/graph": "^0.2.0",
