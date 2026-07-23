@@ -32,7 +32,7 @@
   "scripts": {
     "clean": "rm -rf dist",
     "grammar": "lezer-generator src/parser/λs.grammar -o src/parser/λs.js",
-    "build": "bun run format && bun build src/index.ts --outfile dist/lambdascript.js --target browser --format esm --minify && bun build src/index.ts --outfile dist/lambdascript.umd.cjs --target browser --format cjs --minify",
+    "build": "bun run format && bun build src/index.ts --outfile dist/lambdascript.js --target browser --format esm --conditions=source --minify && bun build src/index.ts --outfile dist/lambdascript.umd.cjs --target browser --format cjs --conditions=source --minify",
     "test": "bun test --parallel",
     "coverage": "bun test --coverage --coverage-reporter=lcov",
     "definitions": "tsc --project tsconfig.build.json",
