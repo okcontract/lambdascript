@@ -49,9 +49,13 @@ export const traverseAST = (
             aux(vars)(node.sub);
           }
           break;
-        case NameLambda:
-          aux(vars.add(node.parameter))(node.body);
+        case NameLambda: {
+          // Create a new scope for the lambda body (no mutation of parent set)
+          const scoped = new Set(vars);
+          scoped.add(node.parameter);
+          aux(scoped)(node.body);
           break;
+        }
         case "named":
           aux(vars)(node.value);
           break;

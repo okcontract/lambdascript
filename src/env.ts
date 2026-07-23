@@ -26,6 +26,8 @@ export type ValueMap = {
   [key: string]: Value<unknown>;
 };
 
+export type TypeMap = { [key: string]: TypeScheme };
+
 export type ValueDefinition = [string, Value<unknown>, TypeScheme];
 
 /**
@@ -35,7 +37,7 @@ export type EnvironmentOptions = {
   id?: string;
   lib?: StandardLibrary;
   values?: ValueMap;
-  types?: { [key: string]: TypeScheme };
+  types?: TypeMap;
   cases?: { [key: string]: string };
   parseOptions?: ParseOptions;
   extensions?: ParserExtension<unknown, string>[];
@@ -44,6 +46,11 @@ export type EnvironmentOptions = {
 
 export const valuesCase = (initialValues: ValueMap) =>
   ObjectMapKey((key, _) => [key.toLowerCase(), key], initialValues);
+
+const hasBless = (
+  value: Value<unknown>
+): value is Value<unknown> & { bless: (name: string) => void } =>
+  typeof (value as { bless?: unknown }).bless === "function";
 
 export class Environment {
   /** static library: resolved first, containing both value and type information */
@@ -54,9 +61,9 @@ export class Environment {
    *       However, `inferType` for `NameLambda` uses an Environment updated
    *       with the type of the bound variable in the lambda.
    **/
-  _values: ValueMap;
+  private _values: ValueMap;
   /** type expressions (for values) */
-  private _types: { [key: string]: TypeScheme };
+  private _types: TypeMap;
   /** original cases for values and types */
   private _originalCases: { [key: string]: string };
 
@@ -64,12 +71,16 @@ export class Environment {
 
   initialValues = {} as const;
 
-  initialTypes: { [key: string]: TypeScheme } = {
+  initialTypes: TypeMap = {
     true: { vars: [], type: typeBoolean },
     false: { vars: [], type: typeBoolean }
   };
 
   options: EnvironmentOptions;
+
+  get values() {
+    return this._values;
+  }
 
   constructor(proxy: SheetProxy, options: EnvironmentOptions = {}) {
     envCounter = envCounter + 1;
@@ -93,7 +104,16 @@ export class Environment {
   }
 
   _updateLib(lib: StandardLibrary) {
-    this._lib = lib;
+    // convert to lowercase, convert keys to lowercase
+    this._originalCases = {
+      ...Object.fromEntries(
+        Object.entries(lib).map(([k, _v]) => [k.toLowerCase(), k])
+      ),
+      ...this._originalCases
+    };
+    this._lib = Object.fromEntries(
+      Object.entries(lib).map(([k, v]) => [k.toLowerCase(), v])
+    );
   }
 
   // getters
@@ -165,7 +185,7 @@ export class Environment {
     // console.log("addExpression", { name, expr });
     const type = await this.infer(expr);
     const value = this.eval(expr);
-    value.bless(`eval:${name}`);
+    if (hasBless(value)) value.bless(`eval:${name}`);
     const nameLow = name.toLowerCase();
     // Value already exists, it must have same type.
     // @todo check type
@@ -215,6 +235,13 @@ export class Environment {
     // Only if the original case was not defined, we update it.
     if (!this._originalCases[nameLow]) this._originalCases[nameLow] = name;
     return overWrite;
+  };
+
+  removeKey = (key: string) => {
+    const keyLow = key.toLowerCase();
+    delete this._types[keyLow];
+    delete this._values[keyLow];
+    delete this._originalCases[keyLow];
   };
 
   /**

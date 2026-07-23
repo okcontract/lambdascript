@@ -4,6 +4,8 @@ import type { SyntaxNode, Tree } from "@lezer/common";
 export type LowLevelAST = {
   /** name of Node type */
   name: string;
+  from: number;
+  to: number;
   /** value for terminal Nodes */
   value?: string;
   /** children for non-terminal Nodes */
@@ -18,7 +20,7 @@ function isError(name: string): boolean {
 export function toLowLevelAST(input: string, tree: Tree) {
   const aux = (node: SyntaxNode): LowLevelAST => {
     const name = node?.type?.name;
-    const res: LowLevelAST = { name };
+    const res: LowLevelAST = { name, from: node.from, to: node.to };
     let child = node.firstChild;
 
     if (child) {

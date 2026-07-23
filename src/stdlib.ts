@@ -35,7 +35,7 @@ export const typeBoolean = newTypeConst("boolean");
 // Bytes type
 export const typeBytes = newTypeConst("bytes");
 
-const stringToHex = (str) =>
+const stringToHex = (str: string) =>
   [...str]
     .map((char) => char.charCodeAt(0).toString(16).padStart(2, "0"))
     .join("");
@@ -123,7 +123,7 @@ const builtinMAP = (libproxy: SheetProxy): LibraryElement => {
         env: Environment,
         fn: AnyCell<(v: AnyCell<T>) => AnyCell<U>>,
         arr: CellArray<T>
-      ) => mapArrayCell(env.proxy, arr, fn, "map") as AnyCell<U[]>,
+      ) => mapArrayCell(env.proxy, arr, fn, "map"),
       "$map"
     ),
     doc: "Returns a mapped array",
@@ -205,7 +205,7 @@ const builtinLENGTH = (libproxy: SheetProxy): LibraryElement => {
                 ? v.length
                 : isClassInstance(v)
                   ? 1
-                  : typeof v === "object"
+                  : v !== null && typeof v === "object"
                     ? Object.keys(v).length
                     : v !== null && v !== undefined
                       ? 1
@@ -269,7 +269,7 @@ const builtinOperator = (
 
 const builtinComparator = (
   libproxy: SheetProxy,
-  op: string,
+  op: "<" | ">" | "<=" | ">=" | "==" | "!=",
   doc?: string
 ): LibraryElement => {
   const alpha = newTypeVar("op");
@@ -286,19 +286,21 @@ const builtinComparator = (
           (a, b) => {
             if (a instanceof Rational && b instanceof Rational)
               return a.compare(op, b);
+            const left = a as number | string | boolean;
+            const right = b as number | string | boolean;
             switch (op) {
               case "<":
-                return a < b;
+                return left < right;
               case "<=":
-                return a <= b;
+                return left <= right;
               case ">":
-                return a > b;
+                return left > right;
               case ">=":
-                return a >= b;
+                return left >= right;
               case "==":
-                return a === b;
+                return left === right;
               case "!=":
-                return a !== b;
+                return left !== right;
             }
             throw new Error("unknown comparator");
           },
@@ -482,7 +484,7 @@ export const defaultLibrary = (
   $concat: {
     f: libproxy.new((env: Environment, ...vCells: AnyCell<unknown>[]) =>
       env.proxy.mapNoPrevious(vCells, (...v: unknown[]) =>
-        v.reduce((acc, _v) => `${acc}${_v.toString()}`, "")
+        v.reduce((acc, _v) => `${acc}${String(_v)}`, "")
       )
     ),
     doc: "Concatenates string representations of any value",
@@ -574,16 +576,18 @@ export const typeFromJSValue = (
     case "string":
     case "boolean":
       return newTypeConst(typeOfExpression);
-    case "object":
+    case "object": {
       if (Array.isArray(expression))
         // Assuming all elements of the array are of the same type
         return typeList(typeFromJSValue(expression[0]));
       if (expression === null) return newTypeConst("null");
+      const objExpression = expression as Record<string, unknown>;
       return newTypeObject(
         Object.fromEntries(
-          Object.entries(expression).map(([k, v]) => [k, typeFromJSValue(v)])
+          Object.entries(objExpression).map(([k, v]) => [k, typeFromJSValue(v)])
         )
       );
+    }
     default:
       throw new Error("Unsupported expression type");
   }

@@ -17,6 +17,7 @@
   range @left
   pipe @left
   pipeback @right
+  componentIn
   contains @left
   arrow @right
   band @right
@@ -32,10 +33,35 @@
 }
 
 @top SourceFile {
-  expressionList<e, pe> | ""
+  Program | expressionList<e, pe> | ""
 }
 
 @skip { whitespace }
+
+Program {
+  ProgramComponent
+  (!regular0 terminator
+    (!regular0 ProgramComponent))*
+  terminator?
+}
+
+ProgramComponent {
+  LetComponent | TopLevelDefinition
+}
+
+LetComponent {
+  kw<"let"> ComponentBinding
+  (!regular0 terminator? kw<"and"> ComponentBinding)*
+  !regular0 terminator !componentIn kw<"in"> e
+}
+
+ComponentBinding {
+  Identifier !regular0 "=" !regular0 e
+}
+
+TopLevelDefinition {
+  ComponentBinding
+}
 
 // TOP LEVEL
 
@@ -60,7 +86,7 @@ e {
 }
 
 TupleExpression<e> {
-  "{" !regular1 e ("," e)+ !regular1 ","? "}"
+  "{" !regular1 e ("," e)* !regular1 ","? "}"
 }
 
 pe {

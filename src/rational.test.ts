@@ -218,7 +218,7 @@ describe("power function", () => {
 });
 
 test("from JSON", () => {
-  const v = JSON.parse('{"numid": "23448594291968334"}', (key, value) =>
+  const v = JSON.parse('{"numid": "23448594291968334"}', (_key, value) =>
     typeof value === "string" && /^\d+$/.test(value) ? BigInt(value) : value
   );
   expect(new Rational(v.numid).toString()).toBe("23448594291968334");

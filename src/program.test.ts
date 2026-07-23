@@ -61,7 +61,7 @@ describe("order_program correctly orders expressions and identifies external dep
 
 describe("deps_for correctly computes required dependencies", async () => {
   // No dependencies
-  const constantNode: ConstantNode = {
+  const constantNode: ConstantNode<unknown> = {
     type: NameConstant,
     value: "test"
   };
@@ -107,5 +107,24 @@ describe("deps_for correctly computes required dependencies", async () => {
       expr3: { type: NameVariable, name: "var2" }
     });
     expect(program.dependencies(["expr2", "expr3"])).toEqual(["func1", "var2"]);
+  });
+});
+
+describe("Program parsing syntax", () => {
+  it("parses let components and exposes component metadata", async () => {
+    const program = await new Program().set(`
+let foo = 1
+and bar = foo + 1
+in bar
+`);
+    expect(program.get("foo")).toBeDefined();
+    expect(program.get("bar")).toBeDefined();
+    expect(program.components).toHaveLength(1);
+    expect(program.components[0].result.type).toBe(NameVariable);
+  });
+
+  it("supports legacy colon notation during transition", async () => {
+    const program = await new Program().set("foo:1");
+    expect(program.get("foo")).toBeDefined();
   });
 });

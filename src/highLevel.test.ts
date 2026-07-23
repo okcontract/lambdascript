@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, test } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
 
 import {
   type ASTNode,
@@ -282,15 +282,12 @@ const highLevelData: [string, ASTNode][] = [
       ]
     }
   ],
-  // Test for a dual element tuple with a trailing comma (x,)
+  // Test for a singleton tuple with a trailing comma (x,)
   [
-    "{x, y, }",
+    "{x,}",
     {
       type: NameTuple,
-      elements: [
-        { type: NameVariable, name: "x" },
-        { type: NameVariable, name: "y" }
-      ]
+      elements: [{ type: NameVariable, name: "x" }]
     }
   ],
   // Test for a tuple with an expression (x + 1, 2)
@@ -343,7 +340,7 @@ describe("high-level parsing", () => {
       const tree = parser.parse(expr);
       const low = toLowLevelAST(expr, tree);
       const high = toHighLevelAST(low);
-      expect(high).toEqual(ast);
+      expect(high).toEqualRational(ast);
     });
   }
 });

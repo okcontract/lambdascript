@@ -1,5 +1,4 @@
 import { beforeAll, expect, test } from "bun:test";
-
 import {
   type AnyCell,
   filterPredicateCell,

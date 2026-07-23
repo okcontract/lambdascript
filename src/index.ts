@@ -3,6 +3,8 @@
 export {
   type ApplicationNode,
   type ASTNode,
+  apply,
+  applyName,
   type ConstantNode,
   type FieldNode,
   type LambdaNode,
@@ -24,21 +26,39 @@ export {
   newList,
   newNumber,
   newObject,
+  newTuple,
   newVariable,
   type ObjectNode,
+  type SourceRange,
+  type TupleNode,
   type VariableNode
 } from "./ast";
 // stdlib, environment and program
-export { Environment, type ValueDefinition } from "./env";
+export {
+  Environment,
+  type EnvironmentOptions,
+  type TypeMap,
+  type ValueDefinition,
+  type ValueMap
+} from "./env";
 // parse and print
 export { allDiff, firstDiff, isEqual } from "./equal";
+export type { Value } from "./eval";
 export { type ParserExtension, toHighLevelAST } from "./highLevel";
 export { toLowLevelAST } from "./lowLevel";
-export { parseExpression, reservedKeywords } from "./parse";
+export {
+  type ParsedProgram,
+  type ProgramBinding,
+  type ProgramComponent,
+  parseExpression,
+  parseProgram,
+  reservedKeywords
+} from "./parse";
 export { parser } from "./parser/λs";
 export { prettyPrint, prettyPrintType } from "./print";
-export { EvalOption, Program } from "./program";
+export { type Binding, EvalOption, Program } from "./program";
 export {
+  isRational,
   isRationalString,
   Rational,
   rationalNumberRegex,

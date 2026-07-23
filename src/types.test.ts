@@ -1,5 +1,4 @@
 import { describe, expect, it, test } from "bun:test";
-
 import { Sheet, SheetProxy } from "@okcontract/cells";
 
 import {
@@ -11,6 +10,7 @@ import {
 } from "./ast";
 import { Environment } from "./env";
 import { parseExpression } from "./parse";
+import { prettyPrint } from "./print";
 import { Rational } from "./rational";
 import { typeBoolean, typeNumber, typeString } from "./stdlib";
 import {
@@ -295,7 +295,7 @@ describe("types for lambda functions", async () => {
     );
 });
 
-test("type errors", async () => {
+describe("type errors", () => {
   const evErrors: { [e: string]: string } = {
     "foo+a": "Unbound variable: foo",
     '"foo"+1': "Type mismatch: number vs string",
@@ -305,8 +305,11 @@ test("type errors", async () => {
   const proxy = new SheetProxy(new Sheet());
   const env = new Environment(proxy);
   for (const [k, err] of Object.entries(evErrors)) {
-    const ast = await parseExpression(k);
-    await expect(env.infer(ast)).rejects.toThrow(err);
+    it(`rejects "${k}"`, async () => {
+      const ast = await parseExpression(k);
+      console.log({ k, ast: prettyPrint(ast) });
+      await expect(env.infer(ast)).rejects.toThrow(err);
+    });
   }
 });
 

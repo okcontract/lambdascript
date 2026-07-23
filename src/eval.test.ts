@@ -1,5 +1,4 @@
 import { beforeAll, describe, expect, it, test } from "bun:test";
-
 import {
   type AnyCell,
   Sheet,
@@ -19,12 +18,14 @@ beforeAll(() => {
   toEqualWithRationals();
 });
 
+// Avoid overriding expect globally; default toEqual is sufficient here.
+
 test("eval 1+1", async () => {
   const proxy = new Sheet(isEqual).newProxy();
   const env = new Environment(proxy);
   const ast = await parseExpression("1 + 1");
   const result = env.eval(ast);
-  await expect(result.get()).resolves.toEqual(new Rational(2));
+  await expect(result.get()).resolves.toEqualRational(new Rational(2));
 });
 
 describe("eval valid expressions", async () => {
@@ -79,7 +80,7 @@ describe("eval valid expressions", async () => {
       async () => {
         const ast = await parseExpression(expr);
         const res = env.eval(ast);
-        await expect(uncellify(res)).resolves.toEqual(expected);
+        await expect(uncellify(res)).resolves.toEqualRational(expected);
       },
       { timeout: 500 }
     );
@@ -120,9 +121,9 @@ test("evaluated expressions are reactive", async () => {
   const env = new Environment(proxy, { values: { foo } });
   const ast = await parseExpression("foo + 1");
   const expr = env.eval(ast) as AnyCell<Rational>;
-  await expect(expr.get()).resolves.toEqual(new Rational(2));
+  await expect(expr.get()).resolves.toEqualRational(new Rational(2));
   foo.set(new Rational(2));
-  await expect(expr.get()).resolves.toEqual(new Rational(3));
+  await expect(expr.get()).resolves.toEqualRational(new Rational(3));
 });
 
 test("eval outputs cannot be evaluated before env value definition", async () => {
