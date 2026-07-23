@@ -44,6 +44,14 @@ export {
 // parse and print
 export { allDiff, firstDiff, isEqual } from "./equal";
 export type { Value } from "./eval";
+export {
+  defaultFormatSettings,
+  type FormatSettings,
+  formatExpression,
+  formatProgram,
+  formatSource,
+  Separator
+} from "./format";
 export { type ParserExtension, toHighLevelAST } from "./highLevel";
 export { toLowLevelAST } from "./lowLevel";
 export {
