@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, test } from "vitest";
+import { beforeAll, describe, expect, it, test } from "bun:test";
 
 import {
   type ASTNode,
@@ -11,12 +11,12 @@ import {
   NameTuple,
   NameVariable
 } from "./ast";
+import { toEqualWithRationals } from "./extend.test";
 import { toHighLevelAST } from "./highLevel";
 import { toLowLevelAST } from "./lowLevel";
 import { parser } from "./parser/λs";
 import { Rational } from "./rational";
 
-import { toEqualWithRationals } from "./extend.test";
 beforeAll(() => {
   toEqualWithRationals();
 });

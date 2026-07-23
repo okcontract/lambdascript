@@ -3,8 +3,11 @@
   "description": "lambdascript is a reactive functional scripting language",
   "private": false,
   "version": "0.1.0",
-  "main": "dist/lambdascript.js",
+  "main": "dist/lambdascript.umd.cjs",
+  "module": "dist/lambdascript.js",
   "type": "module",
+  "packageManager": "bun@1.3.14",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/lambdascript.js",
@@ -18,33 +21,24 @@
     "LICENSE"
   ],
   "devDependencies": {
-    "@biomejs/biome": "^1.8.3",
     "@lezer/generator": "^1.6.0",
-    "@types/node": "^22.5.4",
-    "@vitest/coverage-v8": "^2.0.5",
-    "happy-dom": "^15.7.3",
-    "immer": "^10.0.3",
-    "terser": "^5.31.6",
-    "typescript": "^5.5.4",
-    "vite": "^5.2.11",
-    "vitest": "^2.0.5"
+    "typescript": "^5.5.4"
   },
   "dependencies": {
     "@lezer/lr": "^1.4.2",
-    "@okcontract/cells": "^0.3.3",
-    "@okcontract/graph": "^0.1.5"
+    "@okcontract/cells": "^0.4.0",
+    "@okcontract/graph": "^0.2.0"
   },
   "scripts": {
     "clean": "rm -rf dist",
     "grammar": "lezer-generator src/parser/λs.grammar -o src/parser/λs.js",
-    "build": "npm run format && vite build",
-    "test": "vitest run",
-    "coverage": "vitest run --coverage",
+    "build": "bun run format && bun build src/index.ts --outfile dist/lambdascript.js --target browser --format esm --minify && bun build src/index.ts --outfile dist/lambdascript.umd.cjs --target browser --format cjs --minify",
+    "test": "bun test --parallel",
+    "coverage": "bun test --coverage --coverage-reporter=lcov",
     "definitions": "tsc --project tsconfig.build.json",
-    "prepublishOnly": "npm test && npm run build && npm run check && npm run definitions",
-    "check": "npx @biomejs/biome check src",
-    "format": "npx @biomejs/biome format src --write && npx @biomejs/biome check src --write",
-    "formatReadme": "prettier README.md --prose-wrap always --print-width 78 -w"
+    "prepublishOnly": "bun run grammar && bun run test && bun run build && bun run check && bun run definitions",
+    "check": "biome check src",
+    "format": "biome check src --write"
   },
   "repository": {
     "type": "git",

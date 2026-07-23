@@ -1,16 +1,16 @@
+import { beforeAll, describe, expect, it, test } from "bun:test";
 import { writeFileSync } from "node:fs";
-import { beforeAll, describe, expect, it, test } from "vitest";
 
 import { Debugger, Sheet, SheetProxy, uncellify } from "@okcontract/cells";
 
 import { Environment } from "./env";
 import { isEqual } from "./equal";
+import { toEqualWithRationals } from "./extend.test";
 import { parseExpression } from "./parse";
 import { Program } from "./program";
 import { Rational } from "./rational";
 import { defaultLibrary } from "./stdlib";
 
-import { toEqualWithRationals } from "./extend.test";
 beforeAll(() => {
   toEqualWithRationals();
 });

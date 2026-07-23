@@ -1,4 +1,4 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import { type LowLevelAST, toLowLevelAST } from "./lowLevel";
 import { parser } from "./parser/λs";

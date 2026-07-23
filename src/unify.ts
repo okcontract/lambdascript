@@ -7,13 +7,13 @@ import {
 } from "./ast";
 import { prettyPrint, prettyPrintType } from "./print";
 import {
-  type MonoType,
-  NameAny,
-  NameConditional,
-  NameGeneric,
   isTypeConst,
   isTypeVar,
-  mapType
+  type MonoType,
+  mapType,
+  NameAny,
+  NameConditional,
+  NameGeneric
 } from "./types";
 import { plural } from "./utils";
 

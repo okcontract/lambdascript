@@ -6,16 +6,16 @@ import {
 } from "@okcontract/cells";
 
 import type { ASTNode } from "./ast";
-import { type Value, evaluateAST } from "./eval";
+import { evaluateAST, type Value } from "./eval";
 import type { ParserExtension } from "./highLevel";
 import { inferType } from "./infer";
 import { mergeWithFirstPriority } from "./merge";
 import { ObjectMapKey } from "./objectMap";
 import { type ParseOptions, parseExpression } from "./parse";
 import {
+  defaultLibrary,
   type LibraryElement,
   type StandardLibrary,
-  defaultLibrary,
   typeBoolean
 } from "./stdlib";
 import type { TypeScheme } from "./typeScheme";

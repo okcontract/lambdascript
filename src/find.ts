@@ -1,9 +1,9 @@
 import {
   type AnyCell,
   type CellArray,
+  collector,
   type MapCell,
-  type SheetProxy,
-  collector
+  type SheetProxy
 } from "@okcontract/cells";
 
 /**

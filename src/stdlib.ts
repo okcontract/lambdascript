@@ -1,11 +1,11 @@
 import {
   type AnyCell,
   type CellArray,
-  type MapCell,
-  type SheetProxy,
   filterPredicateCell,
   last,
-  mapArrayCell
+  type MapCell,
+  mapArrayCell,
+  type SheetProxy
 } from "@okcontract/cells";
 
 import { NameLambda, NameList } from "./ast";
@@ -17,10 +17,10 @@ import { Rational } from "./rational";
 import type { TypeScheme } from "./typeScheme";
 import {
   type MonoType,
-  type TypeConst,
   newTypeConst,
   newTypeObject,
   newTypeVar,
+  type TypeConst,
   typeAny,
   typeFunction,
   typeList

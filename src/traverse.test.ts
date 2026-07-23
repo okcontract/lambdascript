@@ -1,8 +1,8 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import {
-  type ASTNode,
   type ApplicationNode,
+  type ASTNode,
   type ConstantNode,
   type ListNode,
   NameApplication,

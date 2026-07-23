@@ -1,0 +1,31 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "@okcontract/lambdascript",
+      "dependencies": {
+        "@lezer/lr": "^1.4.2",
+        "@okcontract/cells": "^0.4.0",
+        "@okcontract/graph": "^0.2.0",
+      },
+      "devDependencies": {
+        "@lezer/generator": "^1.6.0",
+        "typescript": "^5.5.4",
+      },
+    },
+  },
+  "packages": {
+    "@lezer/common": ["@lezer/common@1.5.2", "", {}, "sha512-sxQE460fPZyU3sdc8lafxiPwJHBzZRy/udNFynGQky1SePYBdhkBl1kOagA9uT3pxR8K09bOrmTUqA9wb/PjSQ=="],
+
+    "@lezer/generator": ["@lezer/generator@1.8.0", "", { "dependencies": { "@lezer/common": "^1.1.0", "@lezer/lr": "^1.3.0" }, "bin": { "lezer-generator": "src/lezer-generator.cjs" } }, "sha512-/SF4EDWowPqV1jOgoGSGTIFsE7Ezdr7ZYxyihl5eMKVO5tlnpIhFcDavgm1hHY5GEonoOAEnJ0CU0x+tvuAuUg=="],
+
+    "@lezer/lr": ["@lezer/lr@1.4.10", "", { "dependencies": { "@lezer/common": "^1.0.0" } }, "sha512-rnCpTIBafOx4mRp43xOxDJbFipJm/c0cia/V5TiGlhmMa+wsSdoGmUN3w5Bqrks/09Q/D4tNAmWaT8p6NRi77A=="],
+
+    "@okcontract/cells": ["@okcontract/cells@0.4.0", "", { "dependencies": { "@okcontract/graph": "^0.2.0" } }, "sha512-jRniMpaiWw+uCPBi4598tExiOzIBPPJyApKMRywIvuteZuBEY7HelsCN5N/rPsqUKkk6Zao+NHdkhmO6dD69vw=="],
+
+    "@okcontract/graph": ["@okcontract/graph@0.2.0", "", {}, "sha512-UCYVIyg6m+z2oveyWmO+YMLWvh9OlpXaBtqN9XZ/v5WinIGQZ5EjczInGiuohWS7iJTBfuxHfVi3G9EDqvpQBA=="],
+
+    "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+  }
+}

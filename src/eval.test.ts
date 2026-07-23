@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it, test } from "vitest";
+import { beforeAll, describe, expect, it, test } from "bun:test";
 
 import {
   type AnyCell,
@@ -10,11 +10,11 @@ import {
 import { NameLambda } from "./ast";
 import { Environment } from "./env";
 import { isEqual } from "./equal";
+import { toEqualWithRationals } from "./extend.test";
 import { parseExpression } from "./parse";
 import { Rational } from "./rational";
-import { type LibraryElement, defaultLibrary, typeString } from "./stdlib";
+import { defaultLibrary, type LibraryElement, typeString } from "./stdlib";
 
-import { toEqualWithRationals } from "./extend.test";
 beforeAll(() => {
   toEqualWithRationals();
 });

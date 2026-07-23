@@ -90,7 +90,7 @@ export function toHighLevelAST(
           parseTree.children
             ?.map((c) => toHighLevelAST(c, extensions))
             ?.map((node) =>
-              // @ts-ignore @todo check node is temporary "named"
+              // @ts-expect-error @todo check node is temporary "named"
               [node.key, node.value]
             ) || []
         )

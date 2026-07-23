@@ -1,6 +1,6 @@
 import {
-  type ASTNode,
   type ApplicationNode,
+  type ASTNode,
   type ConstantNode,
   type FieldNode,
   type LambdaNode,
@@ -18,7 +18,7 @@ import {
   type VariableNode
 } from "./ast";
 import type { ParserExtension } from "./highLevel";
-import { Rational, isRationalString } from "./rational";
+import { isRationalString, Rational } from "./rational";
 
 export function parseNode(
   node: ASTNode,

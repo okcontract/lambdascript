@@ -1,16 +1,16 @@
-import { describe, expect, it, test } from "vitest";
+import { describe, expect, it, test } from "bun:test";
 
 import {
-  NewRational,
-  Rational,
-  type RationalNumber,
   add,
   divide,
   floatToRational,
   getNumberParts,
   isRationalString,
   multiply,
+  NewRational,
   power,
+  Rational,
+  type RationalNumber,
   rootNth,
   simplifyRational,
   subtract

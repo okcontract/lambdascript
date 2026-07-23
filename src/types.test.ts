@@ -1,4 +1,4 @@
-import { describe, expect, it, test } from "vitest";
+import { describe, expect, it, test } from "bun:test";
 
 import { Sheet, SheetProxy } from "@okcontract/cells";
 
@@ -16,8 +16,8 @@ import { typeBoolean, typeNumber, typeString } from "./stdlib";
 import {
   Instantiate,
   InstantiateAlpha,
-  type TypeScheme,
-  newTypeScheme
+  newTypeScheme,
+  type TypeScheme
 } from "./typeScheme";
 import { type MonoType, typeAny, typeList } from "./types";
 

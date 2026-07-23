@@ -164,7 +164,7 @@ export function prettyPrint(node: ASTNode, parentPrecedence = 0): string {
       let name: string;
       if (node.function.type === NameVariable) {
         name = node.function.name;
-        if (name !== "!" && /^[\+\-\*\/=<>!^&|]/.test(name)) {
+        if (name !== "!" && /^[+\-*/=<>!^&|]/.test(name)) {
           const params = node.params.map((p) =>
             prettyPrint(p, operatorPrecedence[name])
           );
@@ -238,7 +238,7 @@ export function prettyPrintHTML(node: ASTNode, parentPrecedence = 0): string {
       let name: string;
       if (node.function.type === NameVariable) {
         name = node.function.name;
-        if (name !== "!" && /^[\+\-\*\/=<>!^&|]/.test(name)) {
+        if (name !== "!" && /^[+\-*/=<>!^&|]/.test(name)) {
           const params = node.params.map((p) =>
             prettyPrintHTML(p, operatorPrecedence[name])
           );
