@@ -3,7 +3,12 @@ import { Graph } from "@okcontract/graph";
 import type { ASTNode } from "./ast";
 import { exprDependencies } from "./deps";
 import type { Environment } from "./env";
-import { type ParseOptions, parseExpression } from "./parse";
+import {
+  type ParsedProgram,
+  type ProgramComponent as ParsedProgramComponent,
+  type ParseOptions,
+  parseProgram as parseProgramSource
+} from "./parse";
 import { prettyPrint } from "./print";
 import { plural } from "./utils";
 
@@ -21,6 +26,8 @@ type ProgramOptions = {
   parseOptions?: ParseOptions;
 };
 
+export type Binding = { name: string; expr: ASTNode };
+
 /**
  * Program defines a lambdascript program.
  * @usage await new Program().set([defs...])
@@ -28,6 +35,7 @@ type ProgramOptions = {
 export class Program {
   private _graph: Graph<string>;
   _defs: { [key: string]: ASTNode };
+  _components: ParsedProgramComponent[];
   _options: ProgramOptions;
 
   /**
@@ -40,15 +48,20 @@ export class Program {
   ) {
     this._graph = new Graph();
     this._defs = defs;
+    this._components = [];
     this._options = options;
     for (const key in defs) {
       this._addDef(key, defs[key]);
     }
   }
 
-  private _resetProgram(defs: { [key: string]: ASTNode }) {
+  private _resetProgram(
+    defs: { [key: string]: ASTNode },
+    components: ParsedProgramComponent[] = []
+  ) {
     this._graph = new Graph();
     this._defs = defs;
+    this._components = components;
     for (const key in defs) {
       this._addDef(key, defs[key]);
     }
@@ -67,8 +80,10 @@ export class Program {
   }
 
   // Set resets the Program with definitions from unparsed expressions (chainable).
-  set = async (...l: string[]): Promise<Program> =>
-    this._resetProgram(await this.parseProgram(l));
+  set = async (...segments: string[]): Promise<Program> => {
+    const { defs, components } = await this.parseProgramSegments(segments);
+    return this._resetProgram(defs, components);
+  };
 
   get = (key: string): ASTNode | undefined => this._defs[key];
 
@@ -169,7 +184,7 @@ export class Program {
   partialReduce = async (
     env: Environment
   ): Promise<[Environment, string[], Set<string>]> => {
-    const [order, set] = this.order;
+    const [order, _set] = this.order;
     const remainingExpressions: string[] = [];
     const unresolvedDeps: Set<string> = new Set();
 
@@ -208,23 +223,44 @@ export class Program {
    * @param l list of definitions in the form "name:expr"
    * @returns Program (may throw error)
    */
-  parseProgram = async (l: string[]): Promise<{ [key: string]: ASTNode }> =>
-    Object.fromEntries(
-      await Promise.all(
-        l.map(async (def) => {
-          const pos = def.indexOf(":");
-          const ast = await parseExpression(
-            def.substring(pos + 1),
-            this._options.parseOptions
-          ).catch((err) => {
-            throw err;
-          });
-          return [def.substring(0, pos), ast];
-        })
+  private parseProgramSegments = async (
+    segments: string[]
+  ): Promise<{
+    defs: { [key: string]: ASTNode };
+    components: ParsedProgramComponent[];
+  }> => {
+    const normalized = segments.map((segment) =>
+      segment.replace(
+        /^(\s*[$@A-Za-z_][$\w@]*)\s*:(.*)$/s,
+        (_match, name: string, expr: string) => `${name} =${expr}`
       )
     );
+    const source = normalized.join("\n");
+    const parsed: ParsedProgram = await parseProgramSource(
+      source,
+      this._options.parseOptions
+    );
+    const entries = [
+      ...parsed.definitions,
+      ...parsed.components.flatMap((component) => component.bindings)
+    ].map(({ name, expr }) => [name, expr] as const);
+    return {
+      defs: Object.fromEntries(entries),
+      components: parsed.components
+    };
+  };
 
   get expressions() {
-    return this.order[0].map((key) => prettyPrint(this._defs[key]));
+    return this.order[0].map(
+      (key) => `${key} = ${prettyPrint(this._defs[key])}`
+    );
+  }
+
+  get bindings(): readonly Binding[] {
+    return this.order[0].map((name) => ({ name, expr: this._defs[name] }));
+  }
+
+  get components(): readonly ParsedProgramComponent[] {
+    return this._components;
   }
 }

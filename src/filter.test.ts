@@ -1,13 +1,13 @@
-import { beforeAll, expect, test } from "vitest";
-
+import { beforeAll, expect, test } from "bun:test";
 import {
   type AnyCell,
+  filterPredicateCell,
   Sheet,
-  SheetProxy,
-  filterPredicateCell
+  SheetProxy
 } from "@okcontract/cells";
 
 import { toEqualWithRationals } from "./extend.test";
+
 beforeAll(() => {
   toEqualWithRationals();
 });

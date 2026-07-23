@@ -1,7 +1,14 @@
 // utils
-export { length, plural } from "./utils";
 
 export {
+  type ApplicationNode,
+  type ASTNode,
+  apply,
+  applyName,
+  type ConstantNode,
+  type FieldNode,
+  type LambdaNode,
+  type ListNode,
   NameApplication,
   NameConstant,
   NameError,
@@ -9,9 +16,9 @@ export {
   NameLambda,
   NameList,
   NameObject,
+  Names,
   NameTuple,
   NameVariable,
-  Names,
   newConstant,
   newFromJS,
   newLambda,
@@ -19,56 +26,76 @@ export {
   newList,
   newNumber,
   newObject,
+  newTuple,
   newVariable,
-  type ASTNode,
-  type ApplicationNode,
-  type ConstantNode,
-  type FieldNode,
-  type LambdaNode,
-  type ListNode,
   type ObjectNode,
+  type SourceRange,
+  type TupleNode,
   type VariableNode
 } from "./ast";
-export { newTypeScheme, type TypeScheme } from "./typeScheme";
+// stdlib, environment and program
 export {
-  newTypeConst,
-  newTypeObject,
-  newTypeTuple,
-  newTypeVar,
-  typeAny,
-  typeFunction,
-  typeList,
-  type MonoType,
-  type TypeAny,
-  type TypeConst
-} from "./types";
-
+  Environment,
+  type EnvironmentOptions,
+  type TypeMap,
+  type ValueDefinition,
+  type ValueMap
+} from "./env";
 // parse and print
 export { allDiff, firstDiff, isEqual } from "./equal";
-export { toHighLevelAST, type ParserExtension } from "./highLevel";
+export type { Value } from "./eval";
+export {
+  defaultFormatSettings,
+  type FormatSettings,
+  formatExpression,
+  formatProgram,
+  formatSource,
+  Separator
+} from "./format";
+export { type ParserExtension, toHighLevelAST } from "./highLevel";
 export { toLowLevelAST } from "./lowLevel";
-export { parseExpression, reservedKeywords } from "./parse";
+export {
+  type ParsedProgram,
+  type ProgramBinding,
+  type ProgramComponent,
+  parseExpression,
+  parseProgram,
+  reservedKeywords
+} from "./parse";
 export { parser } from "./parser/λs";
 export { prettyPrint, prettyPrintType } from "./print";
-
-// stdlib, environment and program
-export { Environment, type ValueDefinition } from "./env";
-export { EvalOption, Program } from "./program";
+export { type Binding, EvalOption, Program } from "./program";
 export {
-  Rational,
+  isRational,
   isRationalString,
+  Rational,
   rationalNumberRegex,
   zero
 } from "./rational";
+export { evaluateASTSingle } from "./singleEval";
 export {
   defaultLibrary,
+  type FirstClassValue,
+  type LibraryElement,
   rationalNumber,
+  type StandardLibrary,
   typeBoolean,
   typeBytes,
   typeFromJSValue,
   typeNumber,
-  typeString,
-  type FirstClassValue,
-  type LibraryElement,
-  type StandardLibrary
+  typeString
 } from "./stdlib";
+export { newTypeScheme, type TypeScheme } from "./typeScheme";
+export {
+  type MonoType,
+  newTypeConst,
+  newTypeObject,
+  newTypeTuple,
+  newTypeVar,
+  type TypeAny,
+  type TypeConst,
+  typeAny,
+  typeFunction,
+  typeList
+} from "./types";
+export { length, plural } from "./utils";

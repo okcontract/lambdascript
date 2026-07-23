@@ -1,5 +1,7 @@
 import type { AnyCell } from "@okcontract/cells";
 
+const DEV = false;
+
 import {
   type ASTNode,
   NameApplication,
@@ -46,9 +48,9 @@ export const evaluateAST =
         if (!v)
           // @todo agrep to suggest similar names?
           throw new Error(
-            `Undefined variable: ${node.name} in ${JSON.stringify(
-              env.keys(false)
-            )}`
+            `Undefined variable: ${node.name}${
+              DEV ? ` in ${JSON.stringify(env.keys(false))}` : ""
+            }`
           );
         return v;
       }

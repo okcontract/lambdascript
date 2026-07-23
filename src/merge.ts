@@ -4,9 +4,10 @@ export const mergeWithFirstPriority = <
 >(
   objects: T[]
 ): T => {
-  const result = {} as T;
-  for (const obj of objects)
-    for (const [k, v] of Object.entries(obj))
+  const result = {} as Record<Key, unknown>;
+  for (const obj of objects) {
+    for (const [k, v] of Object.entries(obj) as [Key, unknown][])
       if (result[k] === undefined) result[k] = v;
-  return result;
+  }
+  return result as T;
 };

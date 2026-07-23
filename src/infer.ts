@@ -8,7 +8,8 @@ import {
   NameList,
   NameObject,
   NameTuple,
-  NameVariable
+  NameVariable,
+  type SourceRange
 } from "./ast";
 import type { Environment } from "./env";
 import type { ParserExtension } from "./highLevel";
@@ -21,6 +22,14 @@ import {
 } from "./typeScheme";
 import { type MonoType, newTypeConst, newTypeVar } from "./types";
 import { TypeSubstitution } from "./unify";
+
+const throwNodeError = (message: string, node?: ASTNode): never => {
+  const error = new Error(message) as Error & { range?: SourceRange };
+  if (node?.range) {
+    error.range = node.range;
+  }
+  throw error;
+};
 
 export const detectConstantType = (
   v: boolean | string | Rational,
@@ -58,7 +67,7 @@ export const inferType =
           }
           const typeScheme = env.type(node.name);
           if (!typeScheme) {
-            throw new Error(`Unbound variable: ${node.name}`);
+            return throwNodeError(`Unbound variable: ${node.name}`, node);
           }
           return Instantiate(typeScheme);
         }
@@ -119,26 +128,29 @@ export const inferType =
           if (
             !(exprType.kind === NameObject && !isNumber) &&
             !(exprType.kind === NameList && isNumber) &&
+            !(exprType.kind === NameTuple && isNumber) &&
             // not yet resolved
             exprType.kind !== NameVariable
           ) {
-            throw new Error(
+            throwNodeError(
               `In ${prettyPrint(node)}: Expected ${
                 isNumber ? "a list" : "an object"
-              } or variable, got ${exprType.kind}`
+              } or variable, got ${exprType.kind}`,
+              node
             );
           }
 
           if (typeof fieldType !== "string" && !isNumber) {
-            throw new Error(
+            throwNodeError(
               `In ${prettyPrint(node)}: Expected a field ${
                 isNumber ? "index" : "name"
-              }, got ${prettyPrintType(fieldType)}`
+              }, got ${prettyPrintType(fieldType)}`,
+              node
             );
           }
           if (exprType.kind === NameVariable) {
             if (!isNumber && !("field" in node))
-              throw new Error(`No field in ${prettyPrint(node)}`);
+              throwNodeError(`No field in ${prettyPrint(node)}`, node);
             // console.log({
             //   step: "first time",
             //   field: node.field,
@@ -164,8 +176,22 @@ export const inferType =
             return subst._apply(parameterType);
           }
           if (isNumber) {
-            // @ts-expect-error exprType.kind === NameList
-            return subst._apply(exprType.elementType);
+            if (exprType.kind === NameList)
+              return subst._apply(exprType.elementType);
+            if (exprType.kind === NameTuple) {
+              const subNode = "sub" in node ? node.sub : null;
+              if (
+                !subNode ||
+                !("value" in subNode) ||
+                !(subNode.value instanceof Rational)
+              )
+                return throwNodeError("tuple index must be a number", node);
+              // console.log({ fieldType, sub:node.sub.value });
+              return subst._apply(
+                exprType.elementTypes[subNode.value.toNumber()]
+              );
+            }
+            throwNodeError("unkown type", node);
           }
           // @ts-expect-error exprType.kind === NameObject
           if (!(fieldType in exprType.fields)) {
@@ -173,8 +199,9 @@ export const inferType =
             // console.log({ exprType: JSON.stringify(exprType) });
             // @ts-expect-error exprType.kind === NameObject
             if (!exprType.open)
-              throw new Error(
-                `In ${prettyPrint(node)}: Unknown field: ${fieldType}`
+              throwNodeError(
+                `In ${prettyPrint(node)}: Unknown field: ${fieldType}`,
+                node
               );
             // Assign a new type variable to the unknown field
             // FIXME: HERE update the field and propagate
@@ -214,7 +241,10 @@ export const inferType =
         }
 
         default:
-          throw new Error(`Unknown node type: ${prettyPrint(node)}`);
+          return throwNodeError(
+            `Unknown node type: ${prettyPrint(node)}`,
+            node
+          );
       }
     };
 
@@ -227,10 +257,11 @@ export const inferType =
     if (substitutedResult !== result) {
       // If this happens, it means a subst._apply call may have been forgotten
       // or we need a better unification algorithm
-      throw new Error(
+      throwNodeError(
         `In ${prettyPrint(
           node
-        )}: Non-substituted free variable in ${prettyPrintType(result)}`
+        )}: Non-substituted free variable in ${prettyPrintType(result)}`,
+        node
       );
     }
 

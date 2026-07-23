@@ -50,6 +50,8 @@ export class Rational {
     return s ? -a / b : a / b;
   };
 
+  toHex = () => `0x${this.toBigInt().toString(16)}` as const;
+
   toNumber = () => {
     const [a, b, s] = this._value;
     return s ? Number(-a) / Number(b) : Number(a) / Number(b);
@@ -67,7 +69,7 @@ export class Rational {
   max = (...args: Rational[]) =>
     new Rational(max(this._value, ...args.map((v) => v._value)));
 
-  compare = (op: string, b: Rational) => {
+  compare = (op: "<" | ">" | "<=" | ">=" | "==" | "!=", b: Rational) => {
     const aSimplified = this.simplify();
     const bSimplified = b.simplify();
     // console.log({ aSimplified, bSimplified });
@@ -126,6 +128,8 @@ export const printRational = (r: RationalNumber): string => {
 export const NewRational = (num: number | bigint | string): RationalNumber => {
   // console.log({ num });
   switch (typeof num) {
+    case "undefined":
+      return [0n, 1n, false];
     case "bigint":
       return [num < 0n ? -num : num, 1n, num < 0n];
     case "number":
@@ -344,3 +348,6 @@ export function max(
 }
 
 export const zero = new Rational(0);
+
+export const isRational = (v: unknown): v is Rational =>
+  v !== null && typeof v === "object" && "simplify" in v;

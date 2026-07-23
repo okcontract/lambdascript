@@ -1,18 +1,22 @@
-import { beforeAll, expect, test } from "vitest";
-
+import { beforeAll, expect, test } from "bun:test";
 import { jsonStringify } from "@okcontract/cells";
 
-import { NameApplication, NameConstant, NameVariable } from "./ast";
+import {
+  type ASTNode,
+  NameApplication,
+  NameConstant,
+  NameVariable
+} from "./ast";
+import { toEqualWithRationals } from "./extend.test";
 import { parseNode } from "./json";
 import { Rational } from "./rational";
 
-import { toEqualWithRationals } from "./extend.test";
 beforeAll(() => {
   toEqualWithRationals();
 });
 
 test("output is fine", () => {
-  const v = {
+  const v: ASTNode = {
     type: NameApplication,
     function: { type: NameVariable, name: "+" },
     params: [
@@ -34,7 +38,7 @@ test("output is fine", () => {
       }
     ]
   };
-  expect(parseNode(v)).toEqual(exp);
+  expect(parseNode(v)).toEqualRational(exp);
 });
 
 const values: unknown[] = [

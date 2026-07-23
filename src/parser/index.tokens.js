@@ -116,9 +116,8 @@ function combineSurrogates(input, offset) {
   return s;
 }
 
-export const Identifier = new ExternalTokenizer((input, stack) => {
+export const Identifier = new ExternalTokenizer((input, _stack) => {
   let start = true;
-  const ok = true;
   let offset = 0;
   let eat = 1;
   while (true) {
@@ -183,7 +182,7 @@ const isStringInterpolation = (input, offset) => {
 };
 
 const makeStringContent = ({ till, term }) => {
-  return new ExternalTokenizer((input, stack) => {
+  return new ExternalTokenizer((input, _stack) => {
     let offset = 0;
     let eatNext = false;
     while (true) {

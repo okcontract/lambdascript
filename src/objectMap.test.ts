@@ -1,10 +1,10 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import { ObjectMap, ObjectMapKey } from "./objectMap";
 
 test("ObjectMap", () => {
   const m = { a: 1, b: 2, c: 3 };
-  const fn = (key: string, v: number) => v + 1;
+  const fn = (_key: string, v: number) => v + 1;
   expect(ObjectMap(fn, {})).toEqual({});
   expect(ObjectMap(fn, m)).toEqual({ a: 2, b: 3, c: 4 });
 });
@@ -18,7 +18,7 @@ test("ObjectMapKey", () => {
 
 test("ObjectMapKey with different type", () => {
   const m = { a: 1, b: 2, c: 3 };
-  const fn = (key: string, v: number): [string, string] => [`${key}a`, key];
+  const fn = (key: string, _v: number): [string, string] => [`${key}a`, key];
   expect(ObjectMapKey(fn, {})).toEqual({});
   expect(ObjectMapKey(fn, m)).toEqual({ aa: "a", ba: "b", ca: "c" });
 });

@@ -1,9 +1,8 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import { parser } from "./λs";
 
-test("it parses", () => {
-  const input = "min(1,2)";
+function collectNodeNames(input) {
   const tree = parser.parse(input);
   const nodes = [];
   const cursor = tree.cursor();
@@ -11,8 +10,13 @@ test("it parses", () => {
     if (cursor.name && cursor.name !== "⚠") {
       nodes.push(cursor.name);
     }
-    // console.log(`Node ${cursor.name} from ${cursor.from} to ${cursor.to}`);
   } while (cursor.next());
+  return nodes;
+}
+
+test("it parses", () => {
+  const input = "min(1,2)";
+  const nodes = collectNodeNames(input);
   expect(nodes).toEqual([
     "SourceFile",
     "CallExpression",
@@ -20,5 +24,27 @@ test("it parses", () => {
     "ArgumentList",
     "NumberValue",
     "NumberValue"
+  ]);
+});
+
+test("it parses singleton tuple call arguments with trailing commas cleanly", () => {
+  const input = `foo(
+  {x,},
+)`;
+  const tree = parser.parse(input);
+  const nodes = [];
+  const cursor = tree.cursor();
+  do {
+    if (cursor.name) {
+      nodes.push(cursor.name);
+    }
+  } while (cursor.next());
+  expect(nodes).toEqual([
+    "SourceFile",
+    "CallExpression",
+    "Identifier",
+    "ArgumentList",
+    "TupleExpression",
+    "Identifier"
   ]);
 });

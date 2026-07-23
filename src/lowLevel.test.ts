@@ -1,7 +1,19 @@
-import { expect, test } from "vitest";
+import { expect, test } from "bun:test";
 
 import { type LowLevelAST, toLowLevelAST } from "./lowLevel";
 import { parser } from "./parser/λs";
+
+const stripPositions = (node: LowLevelAST): unknown => {
+  const { from: _from, to: _to, children, ...rest } = node;
+  return {
+    ...rest,
+    ...(children
+      ? {
+          children: children.map((child) => stripPositions(child))
+        }
+      : {})
+  };
+};
 
 const lowLevelData: [string, LowLevelAST][] = [
   [
@@ -99,14 +111,14 @@ test("low-level parsing", () => {
   for (let i = 0; i < lowLevelData.length; i++) {
     const [expr, ast] = lowLevelData[i];
     const tree = parser.parse(expr);
-    expect(toLowLevelAST(expr, tree)).toEqual(ast);
+    expect(stripPositions(toLowLevelAST(expr, tree))).toEqual(ast);
   }
 });
 
 test("parse error", () => {
   const expr = "1+";
   const tree = parser.parse(expr);
-  expect(toLowLevelAST(expr, tree)).toEqual({
+  expect(stripPositions(toLowLevelAST(expr, tree))).toEqual({
     children: [
       {
         children: [

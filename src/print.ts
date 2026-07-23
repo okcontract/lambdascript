@@ -52,7 +52,8 @@ function getPrettyTypeVar(m: Map<string, string>, typeVar: TypeVar): string {
         : `${Math.floor(newIndex / greekLetters.length)}`);
     m.set(typeVar.type, greekLetter);
   }
-  return m.get(typeVar.type);
+  const pretty = m.get(typeVar.type);
+  return pretty ?? typeVar.type;
 }
 
 export function prettyPrintType(type: MonoType): string {
@@ -93,6 +94,7 @@ const operatorPrecedence: { [key: string]: number } = {
   "-": 1,
   "*": 2,
   "/": 2,
+  "%": 2,
   "^": 3,
   "=": 0,
   "<": 0,
@@ -100,14 +102,17 @@ const operatorPrecedence: { [key: string]: number } = {
   "!": 0
 };
 
-function isInteger(str) {
+const nonAssociativeOperators = new Set(["-", "/", "%", "=", "<", ">"]);
+
+function isInteger(str: string) {
   const num = Number.parseInt(str, 10);
   return !Number.isNaN(num) && Number.isInteger(num) && num.toString() === str;
 }
 
-function toBoldUnicode(text: string) {
-  const getBoldChar = (char) => {
+function _toBoldUnicode(text: string) {
+  const getBoldChar = (char: string) => {
     const code = char.codePointAt(0);
+    if (code === undefined) return char;
 
     // Uppercase letters A-Z
     if (code >= 0x41 && code <= 0x5a) {
@@ -163,13 +168,17 @@ export function prettyPrint(node: ASTNode, parentPrecedence = 0): string {
       // Treat as infix operator if name starts with specified characters.
       let name: string;
       if (node.function.type === NameVariable) {
-        name = node.function.name;
-        if (name !== "!" && /^[\+\-\*\/=<>!^&|]/.test(name)) {
-          const params = node.params.map((p) =>
-            prettyPrint(p, operatorPrecedence[name])
+        name = node.function.name === "IF" ? "if" : node.function.name;
+        if (name !== "!" && /^[+\-*/%=<>!^&|]/.test(name)) {
+          const precedence = operatorPrecedence[name];
+          const rightPrecedence = nonAssociativeOperators.has(name)
+            ? precedence + 1
+            : precedence;
+          const params = node.params.map((p, index) =>
+            prettyPrint(p, index === 1 ? rightPrecedence : precedence)
           );
           const expression = `${params.join(` ${name} `)}`;
-          if (parentPrecedence > operatorPrecedence[name]) {
+          if (parentPrecedence > precedence) {
             return `(${expression})`;
           }
           return expression;
@@ -184,7 +193,7 @@ export function prettyPrint(node: ASTNode, parentPrecedence = 0): string {
     case NameConstant: {
       const value = node.value;
       // Stringable values
-      if (typeof value === "object" && "toString" in value)
+      if (value !== null && typeof value === "object" && "toString" in value)
         return value.toString();
       return jsonStringify(value);
     }
@@ -238,12 +247,16 @@ export function prettyPrintHTML(node: ASTNode, parentPrecedence = 0): string {
       let name: string;
       if (node.function.type === NameVariable) {
         name = node.function.name;
-        if (name !== "!" && /^[\+\-\*\/=<>!^&|]/.test(name)) {
-          const params = node.params.map((p) =>
-            prettyPrintHTML(p, operatorPrecedence[name])
+        if (name !== "!" && /^[+\-*/%=<>!^&|]/.test(name)) {
+          const precedence = operatorPrecedence[name];
+          const rightPrecedence = nonAssociativeOperators.has(name)
+            ? precedence + 1
+            : precedence;
+          const params = node.params.map((p, index) =>
+            prettyPrintHTML(p, index === 1 ? rightPrecedence : precedence)
           );
           const expression = `${params.join(` ${name} `)}`;
-          if (parentPrecedence > operatorPrecedence[name]) {
+          if (parentPrecedence > precedence) {
             return `<span>(</span>${expression}<span>)</span>`;
           }
           return expression;
@@ -259,7 +272,7 @@ export function prettyPrintHTML(node: ASTNode, parentPrecedence = 0): string {
 
     case NameConstant: {
       const value = node.value;
-      if (typeof value === "object" && "toString" in value)
+      if (value !== null && typeof value === "object" && "toString" in value)
         return value.toString();
       return `<span>${jsonStringify(value)}</span>`;
     }

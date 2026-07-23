@@ -1,16 +1,16 @@
-import { describe, expect, it, test } from "vitest";
+import { describe, expect, it, test } from "bun:test";
 
 import {
-  NewRational,
-  Rational,
-  type RationalNumber,
   add,
   divide,
   floatToRational,
   getNumberParts,
   isRationalString,
   multiply,
+  NewRational,
   power,
+  Rational,
+  type RationalNumber,
   rootNth,
   simplifyRational,
   subtract
@@ -218,7 +218,7 @@ describe("power function", () => {
 });
 
 test("from JSON", () => {
-  const v = JSON.parse('{"numid": "23448594291968334"}', (key, value) =>
+  const v = JSON.parse('{"numid": "23448594291968334"}', (_key, value) =>
     typeof value === "string" && /^\d+$/.test(value) ? BigInt(value) : value
   );
   expect(new Rational(v.numid).toString()).toBe("23448594291968334");

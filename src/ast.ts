@@ -1,6 +1,7 @@
 import { Rational } from "./rational";
 
 export type NodeType = ASTNode["type"];
+export type SourceRange = { from: number; to: number };
 
 export const NameApplication = "app";
 export const NameConstant = "const";
@@ -37,13 +38,23 @@ export type ASTNode =
   | TupleNode
 
   // TemporaryNodes
-  | { type: "named"; key: string; value: ASTNode };
+  | { type: "named"; key: string; value: ASTNode; range?: SourceRange };
 
 export type ApplicationNode = {
   type: typeof NameApplication;
   function: ASTNode;
   params: ASTNode[];
+  range?: SourceRange;
 };
+
+export const apply = (fn: ASTNode, params: ASTNode[]): ApplicationNode => ({
+  type: NameApplication,
+  function: fn,
+  params
+});
+
+export const applyName = (fn: string, params: ASTNode[]): ApplicationNode =>
+  apply(newVariable(fn), params);
 
 // RawConstant without extensions (e.g. Address in `@okcontract/sdk`)
 export type RawConstant = string | boolean | Rational;
@@ -51,6 +62,7 @@ export type RawConstant = string | boolean | Rational;
 export interface ConstantNode<Extensions> {
   type: typeof NameConstant;
   value: RawConstant | Extensions;
+  range?: SourceRange;
 }
 
 export const newNumber = (
@@ -76,6 +88,7 @@ export const newConstant = (
 export interface VariableNode {
   type: typeof NameVariable;
   name: string;
+  range?: SourceRange;
 }
 
 export const newVariable = (name: string): VariableNode => ({
@@ -86,11 +99,13 @@ export const newVariable = (name: string): VariableNode => ({
 export interface ListNode {
   type: typeof NameList;
   elements: ASTNode[];
+  range?: SourceRange;
 }
 
 export interface TupleNode {
   type: typeof NameTuple;
   elements: ASTNode[];
+  range?: SourceRange;
 }
 
 export const newList = (elements: ASTNode[]): ListNode => ({
@@ -106,6 +121,7 @@ export const newTuple = (elements: ASTNode[]): TupleNode => ({
 export interface ObjectNode {
   type: typeof NameObject;
   values: { [key: string]: ASTNode };
+  range?: SourceRange;
 }
 
 export const newObject = (values: { [key: string]: ASTNode }): ObjectNode => ({
@@ -127,18 +143,22 @@ export const newFromJS = (value: unknown): ASTNode =>
           typeof value === "bigint" ||
           typeof value === "boolean"
         ? newConstant(value)
-        : // @todo fail?
-          newConstant(null);
+        : {
+            type: NameError,
+            value: `Unsupported JS value: ${String(value)}`
+          };
 
 export type FieldNode = {
   type: typeof NameField;
   expr: ASTNode;
+  range?: SourceRange;
 } & ({ field: string } | { sub: ASTNode });
 
 export interface LambdaNode {
   type: typeof NameLambda;
   parameter: string;
   body: ASTNode;
+  range?: SourceRange;
 }
 
 export const newLambda = (parameter: string, body: ASTNode): LambdaNode => ({
@@ -159,4 +179,5 @@ export const newLambdaMulti = (
 export interface ErrorNode {
   type: typeof NameError;
   value: string;
+  range?: SourceRange;
 }

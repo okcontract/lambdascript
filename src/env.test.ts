@@ -1,16 +1,15 @@
+import { beforeAll, describe, expect, it, test } from "bun:test";
 import { writeFileSync } from "node:fs";
-import { beforeAll, describe, expect, it, test } from "vitest";
-
 import { Debugger, Sheet, SheetProxy, uncellify } from "@okcontract/cells";
 
 import { Environment } from "./env";
 import { isEqual } from "./equal";
+import { toEqualWithRationals } from "./extend.test";
 import { parseExpression } from "./parse";
 import { Program } from "./program";
 import { Rational } from "./rational";
 import { defaultLibrary } from "./stdlib";
 
-import { toEqualWithRationals } from "./extend.test";
 beforeAll(() => {
   toEqualWithRationals();
 });
@@ -21,7 +20,9 @@ test("env withValue", async () => {
   const proxy = new SheetProxy(sheet);
   const env = new Environment(proxy);
   const env2 = env.withValue("x", proxy.new("foo"));
-  expect(env2.value("x").get()).resolves.toBe("foo");
+  const valueCell = env2.value("x");
+  if (!valueCell) throw new Error("Value not found in environment");
+  await expect(valueCell.get()).resolves.toBe("foo");
 });
 
 test("evaluate string", async () => {
@@ -46,11 +47,15 @@ test("case insensitive values", async () => {
   await env.addExpression("test", await parseExpression("10"));
   expect(env.case("test")).toBe("test");
   for (const s of ["test", "Test", "TEST"])
-    await expect(env.evaluateStringValue(s)).resolves.toEqual(new Rational(10));
+    await expect(env.evaluateStringValue(s)).resolves.toEqualRational(
+      new Rational(10)
+    );
   await env.addExpression("TEST", await parseExpression("11"));
   expect(env.case("TEST")).toBe("test");
   for (const s of ["test", "Test", "TEST"])
-    await expect(env.evaluateStringValue(s)).resolves.toEqual(new Rational(11));
+    await expect(env.evaluateStringValue(s)).resolves.toEqualRational(
+      new Rational(11)
+    );
 });
 
 describe("eval programs", async () => {
@@ -59,6 +64,15 @@ describe("eval programs", async () => {
       ["foo:1", "bar:foo"],
       { foo: new Rational(1), bar: new Rational(1) },
       "get"
+    ],
+    [
+      ["let foo = 1", "and bar = foo + 1", "in bar", "", "baz = bar + 1"],
+      {
+        foo: new Rational(1),
+        bar: new Rational(2),
+        baz: new Rational(3)
+      },
+      "let_component"
     ],
     [
       ["y:x*x", "foo:x+1", "bar:y*x", "x:2"],
@@ -140,7 +154,7 @@ describe("eval programs", async () => {
         writeFileSync(`${pt[2]}.dot`, debug.dot(`${pt[0][0]}...`));
         for (const [key, expectedValue] of Object.entries(pt[1])) {
           const computedValue = up.value(key);
-          await expect(uncellify(computedValue)).resolves.toEqual(
+          await expect(uncellify(computedValue)).resolves.toEqualRational(
             expectedValue
           );
         }

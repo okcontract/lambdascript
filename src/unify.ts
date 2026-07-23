@@ -3,19 +3,28 @@ import {
   NameLambda,
   NameList,
   NameObject,
-  NameTuple
+  NameTuple,
+  type SourceRange
 } from "./ast";
 import { prettyPrint, prettyPrintType } from "./print";
 import {
-  type MonoType,
-  NameAny,
-  NameConditional,
-  NameGeneric,
   isTypeConst,
   isTypeVar,
-  mapType
+  type MonoType,
+  mapType,
+  NameAny,
+  NameConditional,
+  NameGeneric
 } from "./types";
 import { plural } from "./utils";
+
+const throwNodeError = (message: string, node?: ASTNode): never => {
+  const error = new Error(message) as Error & { range?: SourceRange };
+  if (node?.range) {
+    error.range = node.range;
+  }
+  throw error;
+};
 
 export class TypeSubstitution {
   private _current: { [typeVar: string]: MonoType };
@@ -69,14 +78,15 @@ export class TypeSubstitution {
           for (let i = t2.argTypes.length; i < t1.argTypes.length; i++)
             this._unify(t2.argVariadic, t1.argTypes[i], undefined, node);
         } else
-          throw new Error(
+          throwNodeError(
             `Function expects ${plural(
               "argument",
               t1.argTypes.length,
               true
             )} (${t2.argTypes.length} provided) ${
               node ? `at ${prettyPrint(node)}` : ""
-            }`
+            }`,
+            node
           );
       }
       for (let i = 0; i < t1.argTypes.length; i++) {
@@ -87,8 +97,9 @@ export class TypeSubstitution {
       this._unify(t1.elementType, t2.elementType, undefined, node);
     } else if (t1.kind === NameTuple && t2.kind === NameTuple) {
       if (t1.elementTypes.length !== t2.elementTypes.length)
-        throw new Error(
-          `Different arity for tuples: ${t1.elementTypes.length} vs ${t2.elementTypes.length}`
+        throwNodeError(
+          `Different arity for tuples: ${t1.elementTypes.length} vs ${t2.elementTypes.length}`,
+          node
         );
       for (let i = 0; i < t1.elementTypes.length; i++)
         this._unify(t1.elementTypes[i], t2.elementTypes[i], undefined, node);
@@ -109,13 +120,15 @@ export class TypeSubstitution {
           this._unify(t1.fields[key], t2.fields[key], undefined, node);
         } else if (key in t1.fields) {
           if (!t2.open)
-            throw new Error(
-              `Object field mismatch: ${key} missing in second type`
+            throwNodeError(
+              `Object field mismatch: ${key} missing in second type`,
+              node
             );
         } else {
           if (!t1.open)
-            throw new Error(
-              `Object field mismatch: ${key} missing in first type`
+            throwNodeError(
+              `Object field mismatch: ${key} missing in first type`,
+              node
             );
           // We update locally t1
 
@@ -128,8 +141,9 @@ export class TypeSubstitution {
     } else if (t1.kind === NameGeneric && t2.kind === NameGeneric) {
       this._unify(t1.baseType, t2.baseType, undefined, node);
       if (t1.typeArgs.length !== t2.typeArgs.length) {
-        throw new Error(
-          `Generic type arguments mismatch: ${t1.typeArgs.length} vs ${t2.typeArgs.length}`
+        throwNodeError(
+          `Generic type arguments mismatch: ${t1.typeArgs.length} vs ${t2.typeArgs.length}`,
+          node
         );
       }
       for (let i = 0; i < t1.typeArgs.length; i++) {
@@ -140,13 +154,21 @@ export class TypeSubstitution {
       this._unify(t1.check.right, t2.check.right, undefined, node);
       this._unify(t1.trueType, t2.trueType, undefined, node);
       this._unify(t1.falseType, t2.falseType, undefined, node);
-    } else if (isTypeConst(t1) && isTypeConst(t2) && t1.type === t2.type) {
+    } else if (
+      isTypeConst(t1) &&
+      isTypeConst(t2) &&
+      (t1.type === t2.type ||
+        // @todo check 0x-encoded, add prefix to string type
+        (t1.type === "string" && t2.type === "bytes") ||
+        (t1.type === "bytes" && t2.type === "string"))
+    ) {
       return;
     } else {
-      throw new Error(
+      throwNodeError(
         `Type mismatch: ${prettyPrintType(t1)} vs ${prettyPrintType(t2)} ${
           node ? ` at ${prettyPrint(node)}` : ""
-        }`
+        }`,
+        node
       );
     }
   };
