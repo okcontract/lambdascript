@@ -72,6 +72,7 @@ export {
   rationalNumberRegex,
   zero
 } from "./rational";
+export { evaluateASTSingle } from "./singleEval";
 export {
   defaultLibrary,
   type FirstClassValue,
