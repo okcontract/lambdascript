@@ -2,13 +2,15 @@ import { expect, test } from "bun:test";
 
 import {
   type ASTNode,
+  applyName,
   NameApplication,
   NameConstant,
   NameField,
   NameLambda,
   NameList,
   NameObject,
-  NameVariable
+  NameVariable,
+  newVariable
 } from "./ast";
 import { prettyPrint, prettyPrintType } from "./print";
 import { Rational } from "./rational";
@@ -139,4 +141,13 @@ test("prettyPrint infix operators", () => {
   };
   const result = prettyPrint(ast);
   expect(result).toBe("x => ({a: [x, x], b: y => (y + 1)})");
+});
+
+test("prettyPrint preserves right-nested modulo grouping", () => {
+  const ast = applyName("%", [
+    newVariable("$arg0"),
+    applyName("%", [newVariable("$arg1"), newVariable("$arg2")])
+  ]);
+
+  expect(prettyPrint(ast)).toBe("$arg0 % ($arg1 % $arg2)");
 });

@@ -94,12 +94,15 @@ const operatorPrecedence: { [key: string]: number } = {
   "-": 1,
   "*": 2,
   "/": 2,
+  "%": 2,
   "^": 3,
   "=": 0,
   "<": 0,
   ">": 0,
   "!": 0
 };
+
+const nonAssociativeOperators = new Set(["-", "/", "%", "=", "<", ">"]);
 
 function isInteger(str: string) {
   const num = Number.parseInt(str, 10);
@@ -166,12 +169,16 @@ export function prettyPrint(node: ASTNode, parentPrecedence = 0): string {
       let name: string;
       if (node.function.type === NameVariable) {
         name = node.function.name === "IF" ? "if" : node.function.name;
-        if (name !== "!" && /^[+\-*/=<>!^&|]/.test(name)) {
-          const params = node.params.map((p) =>
-            prettyPrint(p, operatorPrecedence[name])
+        if (name !== "!" && /^[+\-*/%=<>!^&|]/.test(name)) {
+          const precedence = operatorPrecedence[name];
+          const rightPrecedence = nonAssociativeOperators.has(name)
+            ? precedence + 1
+            : precedence;
+          const params = node.params.map((p, index) =>
+            prettyPrint(p, index === 1 ? rightPrecedence : precedence)
           );
           const expression = `${params.join(` ${name} `)}`;
-          if (parentPrecedence > operatorPrecedence[name]) {
+          if (parentPrecedence > precedence) {
             return `(${expression})`;
           }
           return expression;
@@ -240,12 +247,16 @@ export function prettyPrintHTML(node: ASTNode, parentPrecedence = 0): string {
       let name: string;
       if (node.function.type === NameVariable) {
         name = node.function.name;
-        if (name !== "!" && /^[+\-*/=<>!^&|]/.test(name)) {
-          const params = node.params.map((p) =>
-            prettyPrintHTML(p, operatorPrecedence[name])
+        if (name !== "!" && /^[+\-*/%=<>!^&|]/.test(name)) {
+          const precedence = operatorPrecedence[name];
+          const rightPrecedence = nonAssociativeOperators.has(name)
+            ? precedence + 1
+            : precedence;
+          const params = node.params.map((p, index) =>
+            prettyPrintHTML(p, index === 1 ? rightPrecedence : precedence)
           );
           const expression = `${params.join(` ${name} `)}`;
-          if (parentPrecedence > operatorPrecedence[name]) {
+          if (parentPrecedence > precedence) {
             return `<span>(</span>${expression}<span>)</span>`;
           }
           return expression;
